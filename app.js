@@ -4,8 +4,6 @@
  */
 
 var express = require('express');
-var routes = require('./routes');
-var user = require('./routes/user');
 var http = require('http');
 var path = require('path');
 
@@ -32,17 +30,35 @@ if ('development' == app.get('env')) {
   app.use(express.errorHandler());
 }
 
-app.get('/', routes.index);
-app.get('/users', user.list);
+app.get('/', 
+	function(req,res,next){
+		res.render("index.html");
+	}
+);
 
 var server = http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));
 });
 
+var workers={};
+
 var io = require('socket.io').listen(server, { log: false });
+
+function sendAnnouncement() {
+	io.sockets.emit('announcement',
+  		"Current workers: " + 
+  		Object.keys(workers).length)
+}
+
 io.sockets.on('connection', function (socket) {
-  socket.emit('news', { hello: 'world' });
-  socket.on('my other event', function (data) {
-    console.log(data);
+  socket.emit('whois');
+  socket.on('iam',function(data){
+  	data.socket=socket;
+  	workers[socket.id]=data;
+  	sendAnnouncement();
+  });
+  socket.on('disconnect',function(){
+  	delete workers[socket.id];
+  	sendAnnouncement();
   });
 });
