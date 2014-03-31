@@ -6,6 +6,7 @@
 var express = require('express');
 var http = require('http');
 var path = require('path');
+var manager = require('./engine/manager');
 
 var ECT = require('ect');
 var ectRenderer = ECT({ watch: true, root: __dirname + '/' });
@@ -40,25 +41,6 @@ var server = http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));
 });
 
-var workers={};
+mansger.start(server)
 
-var io = require('socket.io').listen(server, { log: false });
 
-function sendAnnouncement() {
-	io.sockets.emit('announcement',
-  		"Current workers: " + 
-  		Object.keys(workers).length)
-}
-
-io.sockets.on('connection', function (socket) {
-  socket.emit('whois');
-  socket.on('iam',function(data){
-  	data.socket=socket;
-  	workers[socket.id]=data;
-  	sendAnnouncement();
-  });
-  socket.on('disconnect',function(){
-  	delete workers[socket.id];
-  	sendAnnouncement();
-  });
-});
