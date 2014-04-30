@@ -13,8 +13,8 @@ exports.start = function (server) {
 	}
 
 	io.sockets.on('connection', function (socket) {
-	  socket.emit('whois');
-	  socket.on('iam',function(data){
+	  socket.emit('identify');
+	  socket.on('worker',function(data){
 	  	data.socket=socket;
 	  	workers[socket.id]=data;
 	  	sendAnnouncement();
